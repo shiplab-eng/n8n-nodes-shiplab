@@ -1,0 +1,49 @@
+# Publishes this n8n community node package to npm on every version tag push.
+#
+# One-time setup, pick one:
+#   A. npm Trusted Publishing (recommended): on npmjs.com open the package
+#      settings, add a GitHub Actions publisher for this repo with workflow
+#      name publish.yml, and leave NPM_TOKEN unset.
+#   B. npm granular access token: add it as the NPM_TOKEN repository secret.
+#
+# Release process: run `pnpm run release` locally. That lints, builds, bumps
+# the version, updates the changelog, commits, tags, and pushes — the tag push
+# is what triggers this workflow.
+
+name: Publish
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Required to mint an OIDC token for npm provenance attestation.
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Release
+        run: |
+          [ -n "$NPM_TOKEN" ] && npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+          pnpm run release
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

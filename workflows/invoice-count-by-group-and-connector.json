@@ -1,0 +1,121 @@
+{
+  "name": "Shiplab — Invoice Count By Group And Connector",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "description": "Loads connector groups and connectors, searches last-month invoices once, then returns invoice counts per group and per connector."
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "nodes": [
+    {
+      "id": "c1000000-0000-4000-8000-000000000001",
+      "name": "When clicking ‘Test workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 300],
+      "parameters": {}
+    },
+    {
+      "id": "c1000000-0000-4000-8000-000000000002",
+      "name": "Prepare Last Month",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "parameters": {
+        "jsCode": "const now = new Date();\nconst start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));\nconst end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0));\nconst ymd = (d) => d.toISOString().slice(0, 10);\n\nreturn [{\n  json: {\n    start_date: ymd(start),\n    end_date: ymd(end),\n  },\n}];"
+      }
+    },
+    {
+      "id": "c1000000-0000-4000-8000-000000000003",
+      "name": "Get Connector Groups",
+      "type": "n8n-nodes-shiplab.shiplabConnectorGroup",
+      "typeVersion": 3,
+      "position": [440, 300],
+      "parameters": {
+        "operation": "getAll"
+      },
+      "credentials": {
+        "shiplabApi": {
+          "id": "",
+          "name": "Shiplab account"
+        }
+      }
+    },
+    {
+      "id": "c1000000-0000-4000-8000-000000000004",
+      "name": "Get Connectors",
+      "type": "n8n-nodes-shiplab.shiplabConnector",
+      "typeVersion": 4,
+      "position": [660, 300],
+      "parameters": {
+        "operation": "getAll"
+      },
+      "credentials": {
+        "shiplabApi": {
+          "id": "",
+          "name": "Shiplab account"
+        }
+      }
+    },
+    {
+      "id": "c1000000-0000-4000-8000-000000000005",
+      "name": "Build Catalog",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 300],
+      "parameters": {
+        "jsCode": "function collect(nodeName) {\n  const items = $(nodeName).all().map((i) => i.json);\n  if (items.length === 1 && Array.isArray(items[0])) return items[0];\n  return items.filter((x) => x && typeof x === 'object' && !Array.isArray(x));\n}\n\nconst period = $('Prepare Last Month').first().json;\nconst groups = collect('Get Connector Groups');\nconst connectors = collect('Get Connectors');\n\nconst groupsById = Object.fromEntries(\n  groups.map((g) => [String(g.id), g]),\n);\n\nconst catalog = connectors.map((c) => {\n  const group = groupsById[String(c.company_id)] || {};\n  return {\n    connector_id: c.id,\n    username: c.username,\n    carrier: c.carrier,\n    carrier_display_name: c.carrier_display_name || c.carrier,\n    enabled: c.enabled,\n    status: c.status,\n    connector_group_id: c.company_id,\n    connector_group_name: group.display_name || group.name || c.company_name || '',\n  };\n});\n\nreturn [{\n  json: {\n    start_date: period.start_date,\n    end_date: period.end_date,\n    connector_group_count: groups.length,\n    connector_count: connectors.length,\n    groups: groups.map((g) => ({\n      connector_group_id: g.id,\n      connector_group_name: g.display_name || g.name || '',\n    })),\n    catalog,\n  },\n}];"
+      }
+    },
+    {
+      "id": "c1000000-0000-4000-8000-000000000006",
+      "name": "Get Customer Invoices",
+      "type": "n8n-nodes-shiplab.shiplabInvoice",
+      "typeVersion": 1,
+      "position": [1100, 300],
+      "parameters": {
+        "operation": "searchAll",
+        "startDate": "={{ $('Build Catalog').item.json.start_date }}",
+        "endDate": "={{ $('Build Catalog').item.json.end_date }}",
+        "outputFormat": "json"
+      },
+      "credentials": {
+        "shiplabApi": {
+          "id": "",
+          "name": "Shiplab account"
+        }
+      }
+    },
+    {
+      "id": "c1000000-0000-4000-8000-000000000007",
+      "name": "Summarize Counts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1320, 300],
+      "parameters": {
+        "jsCode": "const catalog = $('Build Catalog').first().json;\nconst response = $input.first().json;\nlet invoices = Array.isArray(response.invoices)\n  ? response.invoices\n  : Array.isArray(response)\n    ? response\n    : [];\n\nconst seen = new Set();\ninvoices = invoices.filter((inv) => {\n  const key = [inv.credential_id, inv.invoice_number, inv.invoice_date].join('|');\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\n\nconst byConnector = new Map();\nfor (const c of catalog.catalog || []) {\n  byConnector.set(String(c.connector_id), {\n    ...c,\n    invoice_count: 0,\n  });\n}\n\nconst byGroup = new Map();\nfor (const g of catalog.groups || []) {\n  byGroup.set(String(g.connector_group_id), {\n    ...g,\n    invoice_count: 0,\n    connector_count: 0,\n  });\n}\nfor (const c of catalog.catalog || []) {\n  const key = String(c.connector_group_id);\n  if (!byGroup.has(key)) {\n    byGroup.set(key, {\n      connector_group_id: c.connector_group_id,\n      connector_group_name: c.connector_group_name || '',\n      invoice_count: 0,\n      connector_count: 0,\n    });\n  }\n  byGroup.get(key).connector_count += 1;\n}\n\nfor (const inv of invoices) {\n  const connectorKey = String(inv.credential_id);\n  if (!byConnector.has(connectorKey)) {\n    byConnector.set(connectorKey, {\n      connector_id: inv.credential_id,\n      username: '',\n      carrier: inv.carrier || '',\n      connector_group_id: inv.company_id,\n      connector_group_name: '',\n      invoice_count: 0,\n    });\n  }\n  byConnector.get(connectorKey).invoice_count += 1;\n\n  const groupKey = String(\n    byConnector.get(connectorKey).connector_group_id ?? inv.company_id,\n  );\n  if (!byGroup.has(groupKey)) {\n    byGroup.set(groupKey, {\n      connector_group_id: Number(groupKey) || groupKey,\n      connector_group_name: byConnector.get(connectorKey).connector_group_name || '',\n      invoice_count: 0,\n      connector_count: 0,\n    });\n  }\n  byGroup.get(groupKey).invoice_count += 1;\n}\n\nconst connectors = [...byConnector.values()].sort(\n  (a, b) => b.invoice_count - a.invoice_count,\n);\nconst groups = [...byGroup.values()].sort(\n  (a, b) => b.invoice_count - a.invoice_count,\n);\n\nreturn [{\n  json: {\n    period: {\n      start_date: catalog.start_date,\n      end_date: catalog.end_date,\n    },\n    connector_group_count: catalog.connector_group_count,\n    connector_count: catalog.connector_count,\n    invoice_count: invoices.length,\n    groups,\n    connectors,\n  },\n}];"
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [[{ "node": "Prepare Last Month", "type": "main", "index": 0 }]]
+    },
+    "Prepare Last Month": {
+      "main": [[{ "node": "Get Connector Groups", "type": "main", "index": 0 }]]
+    },
+    "Get Connector Groups": {
+      "main": [[{ "node": "Get Connectors", "type": "main", "index": 0 }]]
+    },
+    "Get Connectors": {
+      "main": [[{ "node": "Build Catalog", "type": "main", "index": 0 }]]
+    },
+    "Build Catalog": {
+      "main": [[{ "node": "Get Customer Invoices", "type": "main", "index": 0 }]]
+    },
+    "Get Customer Invoices": {
+      "main": [[{ "node": "Summarize Counts", "type": "main", "index": 0 }]]
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+	"node": "n8n-nodes-shiplab.shiplabInvoice",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Finance & Accounting", "Sales"],
+	"resources": {
+		"credentialDocumentation": [{ "url": "https://api.shiplab.com/llms.txt" }],
+		"primaryDocumentation": [{ "url": "https://api.shiplab.com/llms.txt" }]
+	}
+}
