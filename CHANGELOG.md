@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `n8n-nodes-shiplab` are documented here. This project follows
+All notable changes to `@shiplab-eng/n8n-nodes-shiplab` are documented here. This project follows
 [semantic versioning](https://semver.org/).
 
 ## 0.1.2

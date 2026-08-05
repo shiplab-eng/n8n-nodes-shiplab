@@ -1,4 +1,4 @@
-# n8n-nodes-shiplab
+# @shiplab-eng/n8n-nodes-shiplab
 
 Community nodes for the [Shiplab](https://shiplab.com) customer API. Manage your profile, connector groups, connectors, and search invoices from n8n workflows.
 
@@ -10,7 +10,7 @@ API reference: [https://api.shiplab.com/llms.txt](https://api.shiplab.com/llms.t
 
 1. Open your n8n instance (self-hosted).
 2. Go to **Settings → Community Nodes → Install**.
-3. Enter `n8n-nodes-shiplab`.
+3. Enter `@shiplab-eng/n8n-nodes-shiplab`.
 4. Accept the community node risk notice and install.
 5. Search for **Shiplab** in the node picker.
 
@@ -20,7 +20,7 @@ Verified install from the nodes panel (and n8n Cloud) is available after the pac
 
 ```bash
 cd ~/.n8n/nodes
-npm install n8n-nodes-shiplab
+npm install @shiplab-eng/n8n-nodes-shiplab
 ```
 
 Restart n8n afterward.
