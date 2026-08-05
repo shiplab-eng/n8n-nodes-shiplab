@@ -40,13 +40,25 @@ CI runs `pnpm lint` and `pnpm build` on every pull request. Both must pass.
 
 Publishing happens from GitHub Actions so the package carries an npm provenance
 statement, which n8n requires for verified community nodes. Do not run `npm publish`
-directly — `prepublishOnly` blocks it.
+from your machine for normal releases.
 
 1. Make sure `main` is clean, up to date, and has an upstream.
 2. Run `pnpm run release`. It lints, builds, prompts for the version bump, regenerates
    the changelog, then commits, tags, and pushes.
 3. The pushed tag triggers `.github/workflows/publish.yml`, which publishes to npm.
 
-Before the first release, configure npm authentication once — either Trusted Publishing
-on npmjs.com (preferred, no secrets) or an `NPM_TOKEN` repository secret. See the
-comments at the top of `publish.yml`.
+### npm authentication
+
+This package uses **Trusted Publishing** on npmjs.com for
+`@shiplab-eng/n8n-nodes-shiplab`:
+
+- GitHub owner: `shiplab-eng`
+- Repository: `n8n-nodes-shiplab`
+- Workflow: `publish.yml`
+- Allowed action: `npm publish`
+
+Leave the GitHub `NPM_TOKEN` secret unset. The workflow requests an OIDC token and
+npm accepts publishes from that workflow only.
+
+After a successful publish, submit the package for verification at
+[creators.n8n.io/nodes](https://creators.n8n.io/nodes).
