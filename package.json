@@ -1,6 +1,7 @@
 {
 	"name": "@shiplab-eng/n8n-nodes-shiplab",
 	"version": "0.2.0",
+	"packageManager": "pnpm@10.24.0",
 	"description": "n8n community nodes for the Shiplab customer API",
 	"license": "MIT",
 	"homepage": "https://shiplab.com",
