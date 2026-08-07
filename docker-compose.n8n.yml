@@ -1,0 +1,40 @@
+# Local n8n for developing these nodes.
+#
+#   docker compose -f docker-compose.n8n.yml up -d
+#
+# Run `pnpm build` first, then restart the container to pick up changes.
+name: shiplab-n8n
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - '5678:5678'
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: '5678'
+      N8N_PROTOCOL: http
+      N8N_EDITOR_BASE_URL: http://localhost:5678/
+      N8N_WEBHOOK_URL: http://localhost:5678/
+      GENERIC_TIMEZONE: UTC
+      TZ: UTC
+      N8N_SECURE_COOKIE: 'false'
+      N8N_DIAGNOSTICS_ENABLED: 'false'
+      N8N_VERSION_NOTIFICATIONS_ENABLED: 'false'
+      N8N_PERSONALIZATION_ENABLED: 'false'
+      N8N_UNVERIFIED_PACKAGES_ENABLED: 'true'
+    volumes:
+      - n8n_data:/home/node/.n8n
+      # Mounted outside ~/.n8n/custom on purpose: the custom-extensions loader
+      # registers node types without a package prefix, which would duplicate
+      # every node alongside the @shiplab-eng/... types loaded from here.
+      - ./package.json:/home/node/shiplab-node/package.json
+      - ./dist:/home/node/shiplab-node/dist
+      - ./icons:/home/node/shiplab-node/icons
+
+volumes:
+  n8n_data:
+    external: true
+    name: shiplab_n8n_data

@@ -29,7 +29,7 @@
     {
       "id": "d1000000-0000-4000-8000-000000000003",
       "name": "Get Connectors",
-      "type": "n8n-nodes-shiplab.shiplabConnector",
+      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplabConnector",
       "typeVersion": 4,
       "position": [440, 300],
       "parameters": {
@@ -55,7 +55,7 @@
     {
       "id": "d1000000-0000-4000-8000-000000000005",
       "name": "Get Invoices For Connector",
-      "type": "n8n-nodes-shiplab.shiplabInvoice",
+      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplabInvoice",
       "typeVersion": 1,
       "position": [880, 300],
       "parameters": {

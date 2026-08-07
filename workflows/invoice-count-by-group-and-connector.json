@@ -29,7 +29,7 @@
     {
       "id": "c1000000-0000-4000-8000-000000000003",
       "name": "Get Connector Groups",
-      "type": "n8n-nodes-shiplab.shiplabConnectorGroup",
+      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplabConnectorGroup",
       "typeVersion": 3,
       "position": [440, 300],
       "parameters": {
@@ -45,7 +45,7 @@
     {
       "id": "c1000000-0000-4000-8000-000000000004",
       "name": "Get Connectors",
-      "type": "n8n-nodes-shiplab.shiplabConnector",
+      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplabConnector",
       "typeVersion": 4,
       "position": [660, 300],
       "parameters": {
@@ -71,7 +71,7 @@
     {
       "id": "c1000000-0000-4000-8000-000000000006",
       "name": "Get Customer Invoices",
-      "type": "n8n-nodes-shiplab.shiplabInvoice",
+      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplabInvoice",
       "typeVersion": 1,
       "position": [1100, 300],
       "parameters": {
