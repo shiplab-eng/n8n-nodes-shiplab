@@ -19,9 +19,10 @@ pnpm dev
 ```
 
 This starts an n8n instance with the package linked and hot reload enabled. Open the
-URL it prints, add a node, and type **Shiplab** in the node picker — the five Shiplab
-nodes should be listed. If they are not, the build failed or the `n8n.nodes` paths in
-`package.json` are wrong.
+URL it prints, add a node, and type **Shiplab** (or aliases like ship / post / postal)
+in the node picker — one **Shiplab** node should appear with Profile, Connector Group,
+Connector, Carrier, and Invoice actions. If it is not listed, the build failed or the
+`n8n.nodes` paths in `package.json` are wrong.
 
 Create a **Shiplab API** credential pointing at your API before testing operations.
 When n8n runs in Docker and the API runs on the host, set the base URL to

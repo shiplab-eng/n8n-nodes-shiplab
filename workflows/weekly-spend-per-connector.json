@@ -1,5 +1,5 @@
-{
-  "name": "Shiplab — Weekly Spend Per Connector",
+﻿{
+  "name": "Shiplab â€” Weekly Spend Per Connector",
   "meta": {
     "templateCredsSetupCompleted": false,
     "description": "Lists connector groups and connectors, finds invoices from the last 7 days, downloads each extracted invoice JSON, and totals charged amounts per connector."
@@ -10,7 +10,7 @@
   "nodes": [
     {
       "id": "a1000000-0000-4000-8000-000000000001",
-      "name": "When clicking ‘Test workflow’",
+      "name": "When clicking â€˜Test workflowâ€™",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [0, 300],
@@ -23,16 +23,17 @@
       "typeVersion": 2,
       "position": [220, 300],
       "parameters": {
-        "jsCode": "const end = new Date();\nconst start = new Date(end);\nstart.setUTCDate(end.getUTCDate() - 6);\n\nconst ymd = (d) => d.toISOString().slice(0, 10);\n\nreturn [{\n  json: {\n    start_date: ymd(start),\n    end_date: ymd(end),\n    // Prefer exact field names from your Shiplab extracted invoice JSON.\n    // Leave empty to auto-detect common charge field names.\n    amount_field: '',\n  },\n}];"
+        "jsCode": "const end = new Date();\nconst start = new Date(end);\nstart.setUTCDate(end.getUTCDate() - 6);\n\nconst ymd = (d) =\u003e d.toISOString().slice(0, 10);\n\nreturn [{\n  json: {\n    start_date: ymd(start),\n    end_date: ymd(end),\n    // Prefer exact field names from your Shiplab extracted invoice JSON.\n    // Leave empty to auto-detect common charge field names.\n    amount_field: \u0027\u0027,\n  },\n}];"
       }
     },
     {
       "id": "a1000000-0000-4000-8000-000000000003",
       "name": "Get Profile",
-      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplabProfile",
+      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplab",
       "typeVersion": 1,
       "position": [440, 300],
       "parameters": {
+        "resource": "profile",
         "operation": "get"
       },
       "credentials": {
@@ -45,10 +46,11 @@
     {
       "id": "a1000000-0000-4000-8000-000000000004",
       "name": "Get Connector Groups",
-      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplabConnectorGroup",
-      "typeVersion": 3,
+      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplab",
+      "typeVersion": 1,
       "position": [660, 300],
       "parameters": {
+        "resource": "connectorGroup",
         "operation": "getAll"
       },
       "credentials": {
@@ -61,10 +63,11 @@
     {
       "id": "a1000000-0000-4000-8000-000000000005",
       "name": "Get Connectors",
-      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplabConnector",
-      "typeVersion": 4,
+      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplab",
+      "typeVersion": 1,
       "position": [880, 300],
       "parameters": {
+        "resource": "connector",
         "operation": "getAll"
       },
       "credentials": {
@@ -81,19 +84,20 @@
       "typeVersion": 2,
       "position": [1100, 300],
       "parameters": {
-        "jsCode": "function collect(nodeName) {\n  const items = $(nodeName).all().map((i) => i.json);\n  if (items.length === 1 && Array.isArray(items[0])) return items[0];\n  return items.filter((x) => x && typeof x === 'object' && !Array.isArray(x));\n}\n\nconst period = $('Prepare Last 7 Days').first().json;\nconst profile = $('Get Profile').first().json;\nconst groups = collect('Get Connector Groups');\nconst connectors = collect('Get Connectors');\n\nconst groupsById = Object.fromEntries(\n  groups.map((g) => [String(g.id), g]),\n);\n\nconst catalog = connectors.map((c) => {\n  const group = groupsById[String(c.company_id)] || {};\n  return {\n    connector_id: c.id,\n    username: c.username,\n    carrier: c.carrier,\n    carrier_display_name: c.carrier_display_name || c.carrier,\n    enabled: c.enabled,\n    status: c.status,\n    connector_group_id: c.company_id,\n    connector_group_name: group.display_name || group.name || c.company_name || '',\n  };\n});\n\nreturn [{\n  json: {\n    start_date: period.start_date,\n    end_date: period.end_date,\n    amount_field: period.amount_field || '',\n    invoice_format: profile.invoice_format || '',\n    connector_group_count: groups.length,\n    connector_count: connectors.length,\n    catalog,\n  },\n}];"
+        "jsCode": "function collect(nodeName) {\n  const items = $(nodeName).all().map((i) =\u003e i.json);\n  if (items.length === 1 \u0026\u0026 Array.isArray(items[0])) return items[0];\n  return items.filter((x) =\u003e x \u0026\u0026 typeof x === \u0027object\u0027 \u0026\u0026 !Array.isArray(x));\n}\n\nconst period = $(\u0027Prepare Last 7 Days\u0027).first().json;\nconst profile = $(\u0027Get Profile\u0027).first().json;\nconst groups = collect(\u0027Get Connector Groups\u0027);\nconst connectors = collect(\u0027Get Connectors\u0027);\n\nconst groupsById = Object.fromEntries(\n  groups.map((g) =\u003e [String(g.id), g]),\n);\n\nconst catalog = connectors.map((c) =\u003e {\n  const group = groupsById[String(c.company_id)] || {};\n  return {\n    connector_id: c.id,\n    username: c.username,\n    carrier: c.carrier,\n    carrier_display_name: c.carrier_display_name || c.carrier,\n    enabled: c.enabled,\n    status: c.status,\n    connector_group_id: c.company_id,\n    connector_group_name: group.display_name || group.name || c.company_name || \u0027\u0027,\n  };\n});\n\nreturn [{\n  json: {\n    start_date: period.start_date,\n    end_date: period.end_date,\n    amount_field: period.amount_field || \u0027\u0027,\n    invoice_format: profile.invoice_format || \u0027\u0027,\n    connector_group_count: groups.length,\n    connector_count: connectors.length,\n    catalog,\n  },\n}];"
       }
     },
     {
       "id": "a1000000-0000-4000-8000-000000000007",
       "name": "Search Invoices (Last 7 Days)",
-      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplabInvoice",
+      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplab",
       "typeVersion": 1,
       "position": [1320, 300],
       "parameters": {
+        "resource": "invoice",
         "operation": "searchAll",
-        "startDate": "={{ $('Build Catalog').item.json.start_date }}",
-        "endDate": "={{ $('Build Catalog').item.json.end_date }}",
+        "startDate": "={{ $(\u0027Build Catalog\u0027).item.json.start_date }}",
+        "endDate": "={{ $(\u0027Build Catalog\u0027).item.json.end_date }}",
         "outputFormat": "json"
       },
       "credentials": {
@@ -110,7 +114,7 @@
       "typeVersion": 2,
       "position": [1540, 300],
       "parameters": {
-        "jsCode": "const catalog = $('Build Catalog').first().json;\nconst response = $input.first().json;\nlet invoices = Array.isArray(response.invoices)\n  ? response.invoices\n  : Array.isArray(response)\n    ? response\n    : [];\n\n// Prefer the customer's invoice_format when the same invoice appears in multiple formats.\nconst preferred = catalog.invoice_format;\nif (preferred) {\n  const matched = invoices.filter((inv) => inv.file_format === preferred);\n  if (matched.length) invoices = matched;\n}\n\nconst seen = new Set();\ninvoices = invoices.filter((inv) => {\n  const key = [inv.credential_id, inv.invoice_number, inv.invoice_date].join('|');\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\n\nconst byConnector = Object.fromEntries(\n  (catalog.catalog || []).map((c) => [String(c.connector_id), c]),\n);\n\nif (invoices.length === 0) {\n  return [{\n    json: {\n      _empty: true,\n      start_date: catalog.start_date,\n      end_date: catalog.end_date,\n      message: 'No invoices found in this date range.',\n      catalog: catalog.catalog,\n    },\n  }];\n}\n\nreturn invoices.map((inv) => {\n  const connector = byConnector[String(inv.credential_id)] || {\n    connector_id: inv.credential_id,\n    connector_group_id: inv.company_id,\n    carrier: inv.carrier,\n  };\n  return {\n    json: {\n      start_date: catalog.start_date,\n      end_date: catalog.end_date,\n      amount_field: catalog.amount_field,\n      invoice_number: inv.invoice_number,\n      invoice_date: inv.invoice_date,\n      file_format: inv.file_format,\n      signed_url: inv.signed_url,\n      ...connector,\n    },\n  };\n});"
+        "jsCode": "const catalog = $(\u0027Build Catalog\u0027).first().json;\nconst response = $input.first().json;\nlet invoices = Array.isArray(response.invoices)\n  ? response.invoices\n  : Array.isArray(response)\n    ? response\n    : [];\n\n// Prefer the customer\u0027s invoice_format when the same invoice appears in multiple formats.\nconst preferred = catalog.invoice_format;\nif (preferred) {\n  const matched = invoices.filter((inv) =\u003e inv.file_format === preferred);\n  if (matched.length) invoices = matched;\n}\n\nconst seen = new Set();\ninvoices = invoices.filter((inv) =\u003e {\n  const key = [inv.credential_id, inv.invoice_number, inv.invoice_date].join(\u0027|\u0027);\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\n\nconst byConnector = Object.fromEntries(\n  (catalog.catalog || []).map((c) =\u003e [String(c.connector_id), c]),\n);\n\nif (invoices.length === 0) {\n  return [{\n    json: {\n      _empty: true,\n      start_date: catalog.start_date,\n      end_date: catalog.end_date,\n      message: \u0027No invoices found in this date range.\u0027,\n      catalog: catalog.catalog,\n    },\n  }];\n}\n\nreturn invoices.map((inv) =\u003e {\n  const connector = byConnector[String(inv.credential_id)] || {\n    connector_id: inv.credential_id,\n    connector_group_id: inv.company_id,\n    carrier: inv.carrier,\n  };\n  return {\n    json: {\n      start_date: catalog.start_date,\n      end_date: catalog.end_date,\n      amount_field: catalog.amount_field,\n      invoice_number: inv.invoice_number,\n      invoice_date: inv.invoice_date,\n      file_format: inv.file_format,\n      signed_url: inv.signed_url,\n      ...connector,\n    },\n  };\n});"
       }
     },
     {
@@ -166,7 +170,7 @@
       "typeVersion": 2,
       "position": [2200, 180],
       "parameters": {
-        "jsCode": "const meta = $('Has Signed URL?').item.json;\nconst body = $input.item.json;\n\nconst CANDIDATES = [\n  meta.amount_field,\n  'net_spent',\n  'net_amount',\n  'Net Amount',\n  'NetCharges',\n  'Net Charges',\n  'net_charges',\n  'Invoice Amount',\n  'invoice_amount',\n  'Amount Due',\n  'amount_due',\n  'Total Charges',\n  'total_charges',\n  'total_charge',\n  'Charge',\n  'charge',\n  'Total',\n  'total',\n].filter(Boolean);\n\nfunction toNumber(v) {\n  if (v === null || v === undefined || v === '') return null;\n  if (typeof v === 'number' && Number.isFinite(v)) return v;\n  if (typeof v === 'string') {\n    const n = Number(v.replace(/[,$]/g, '').trim());\n    return Number.isFinite(n) ? n : null;\n  }\n  return null;\n}\n\nfunction amountFromObject(obj, field) {\n  if (!obj || typeof obj !== 'object') return null;\n  if (Object.prototype.hasOwnProperty.call(obj, field)) return toNumber(obj[field]);\n  const lower = field.toLowerCase();\n  for (const [k, v] of Object.entries(obj)) {\n    if (String(k).toLowerCase() === lower) return toNumber(v);\n  }\n  return null;\n}\n\nfunction sumField(rows, field) {\n  let sum = 0;\n  let hits = 0;\n  for (const row of rows) {\n    const n = amountFromObject(row, field);\n    if (n !== null) {\n      sum += n;\n      hits += 1;\n    }\n  }\n  return hits ? { amount: sum, field, row_count: hits } : null;\n}\n\nfunction extract(payload) {\n  const rows = Array.isArray(payload)\n    ? payload\n    : Array.isArray(payload?.data)\n      ? payload.data\n      : Array.isArray(payload?.packages)\n        ? payload.packages\n        : Array.isArray(payload?.shipments)\n          ? payload.shipments\n          : Array.isArray(payload?.charges)\n            ? payload.charges\n            : null;\n\n  for (const field of CANDIDATES) {\n    if (rows) {\n      const summed = sumField(rows, field);\n      if (summed) return summed;\n    }\n    const single = amountFromObject(payload, field);\n    if (single !== null) return { amount: single, field, row_count: 1 };\n  }\n\n  return { amount: null, field: null, row_count: 0 };\n}\n\nconst extracted = extract(body);\n\nreturn [{\n  json: {\n    ...meta,\n    charged_amount: extracted.amount,\n    amount_field_used: extracted.field,\n    charge_row_count: extracted.row_count,\n    download_ok: true,\n  },\n}];"
+        "jsCode": "const meta = $(\u0027Has Signed URL?\u0027).item.json;\nconst body = $input.item.json;\n\nconst CANDIDATES = [\n  meta.amount_field,\n  \u0027net_spent\u0027,\n  \u0027net_amount\u0027,\n  \u0027Net Amount\u0027,\n  \u0027NetCharges\u0027,\n  \u0027Net Charges\u0027,\n  \u0027net_charges\u0027,\n  \u0027Invoice Amount\u0027,\n  \u0027invoice_amount\u0027,\n  \u0027Amount Due\u0027,\n  \u0027amount_due\u0027,\n  \u0027Total Charges\u0027,\n  \u0027total_charges\u0027,\n  \u0027total_charge\u0027,\n  \u0027Charge\u0027,\n  \u0027charge\u0027,\n  \u0027Total\u0027,\n  \u0027total\u0027,\n].filter(Boolean);\n\nfunction toNumber(v) {\n  if (v === null || v === undefined || v === \u0027\u0027) return null;\n  if (typeof v === \u0027number\u0027 \u0026\u0026 Number.isFinite(v)) return v;\n  if (typeof v === \u0027string\u0027) {\n    const n = Number(v.replace(/[,$]/g, \u0027\u0027).trim());\n    return Number.isFinite(n) ? n : null;\n  }\n  return null;\n}\n\nfunction amountFromObject(obj, field) {\n  if (!obj || typeof obj !== \u0027object\u0027) return null;\n  if (Object.prototype.hasOwnProperty.call(obj, field)) return toNumber(obj[field]);\n  const lower = field.toLowerCase();\n  for (const [k, v] of Object.entries(obj)) {\n    if (String(k).toLowerCase() === lower) return toNumber(v);\n  }\n  return null;\n}\n\nfunction sumField(rows, field) {\n  let sum = 0;\n  let hits = 0;\n  for (const row of rows) {\n    const n = amountFromObject(row, field);\n    if (n !== null) {\n      sum += n;\n      hits += 1;\n    }\n  }\n  return hits ? { amount: sum, field, row_count: hits } : null;\n}\n\nfunction extract(payload) {\n  const rows = Array.isArray(payload)\n    ? payload\n    : Array.isArray(payload?.data)\n      ? payload.data\n      : Array.isArray(payload?.packages)\n        ? payload.packages\n        : Array.isArray(payload?.shipments)\n          ? payload.shipments\n          : Array.isArray(payload?.charges)\n            ? payload.charges\n            : null;\n\n  for (const field of CANDIDATES) {\n    if (rows) {\n      const summed = sumField(rows, field);\n      if (summed) return summed;\n    }\n    const single = amountFromObject(payload, field);\n    if (single !== null) return { amount: single, field, row_count: 1 };\n  }\n\n  return { amount: null, field: null, row_count: 0 };\n}\n\nconst extracted = extract(body);\n\nreturn [{\n  json: {\n    ...meta,\n    charged_amount: extracted.amount,\n    amount_field_used: extracted.field,\n    charge_row_count: extracted.row_count,\n    download_ok: true,\n  },\n}];"
       }
     },
     {
@@ -176,7 +180,7 @@
       "typeVersion": 2,
       "position": [1980, 420],
       "parameters": {
-        "jsCode": "const items = $input.all().map((i) => ({\n  json: {\n    ...i.json,\n    charged_amount: null,\n    amount_field_used: null,\n    charge_row_count: 0,\n    download_ok: false,\n  },\n}));\nreturn items;"
+        "jsCode": "const items = $input.all().map((i) =\u003e ({\n  json: {\n    ...i.json,\n    charged_amount: null,\n    amount_field_used: null,\n    charge_row_count: 0,\n    download_ok: false,\n  },\n}));\nreturn items;"
       }
     },
     {
@@ -186,49 +190,149 @@
       "typeVersion": 2,
       "position": [2420, 300],
       "parameters": {
-        "jsCode": "const catalog = $('Build Catalog').first().json;\nconst rows = $input.all().map((i) => i.json).filter((r) => !r._empty);\n\nif ($input.first().json._empty) {\n  return [{\n    json: {\n      period: {\n        start_date: catalog.start_date,\n        end_date: catalog.end_date,\n      },\n      connector_group_count: catalog.connector_group_count,\n      connector_count: catalog.connector_count,\n      invoice_count: 0,\n      invoices_with_amount: 0,\n      grand_total_charged: 0,\n      amount_fields_seen: [],\n      connectors: (catalog.catalog || []).map((c) => ({\n        ...c,\n        invoice_count: 0,\n        total_charged: 0,\n        invoices: [],\n      })),\n      note: 'No invoices found in this date range.',\n    },\n  }];\n}\n\nconst byId = new Map();\nfor (const c of catalog.catalog || []) {\n  byId.set(String(c.connector_id), {\n    ...c,\n    invoice_count: 0,\n    total_charged: 0,\n    invoices: [],\n  });\n}\n\nconst amountFields = new Set();\nlet invoicesWithAmount = 0;\nlet grandTotal = 0;\n\nfor (const row of rows) {\n  const key = String(row.connector_id);\n  if (!byId.has(key)) {\n    byId.set(key, {\n      connector_id: row.connector_id,\n      username: row.username,\n      carrier: row.carrier,\n      carrier_display_name: row.carrier_display_name || row.carrier,\n      connector_group_id: row.connector_group_id,\n      connector_group_name: row.connector_group_name || '',\n      invoice_count: 0,\n      total_charged: 0,\n      invoices: [],\n    });\n  }\n  const bucket = byId.get(key);\n  const amount = typeof row.charged_amount === 'number' ? row.charged_amount : null;\n  if (amount !== null) {\n    bucket.total_charged += amount;\n    grandTotal += amount;\n    invoicesWithAmount += 1;\n    if (row.amount_field_used) amountFields.add(row.amount_field_used);\n  }\n  bucket.invoice_count += 1;\n  bucket.invoices.push({\n    invoice_number: row.invoice_number,\n    invoice_date: row.invoice_date,\n    file_format: row.file_format,\n    charged_amount: amount,\n    amount_field_used: row.amount_field_used,\n    download_ok: row.download_ok,\n  });\n}\n\nconst connectors = [...byId.values()].sort((a, b) => b.total_charged - a.total_charged);\n\nreturn [{\n  json: {\n    period: {\n      start_date: catalog.start_date,\n      end_date: catalog.end_date,\n    },\n    connector_group_count: catalog.connector_group_count,\n    connector_count: catalog.connector_count,\n    invoice_count: rows.length,\n    invoices_with_amount: invoicesWithAmount,\n    grand_total_charged: Number(grandTotal.toFixed(2)),\n    amount_fields_seen: [...amountFields],\n    connectors,\n    note: invoicesWithAmount === 0\n      ? 'Invoices were found, but no charge field matched. Open one downloaded invoice JSON and set amount_field in Prepare Last 7 Days to the exact field name.'\n      : undefined,\n  },\n}];"
+        "jsCode": "const catalog = $(\u0027Build Catalog\u0027).first().json;\nconst rows = $input.all().map((i) =\u003e i.json).filter((r) =\u003e !r._empty);\n\nif ($input.first().json._empty) {\n  return [{\n    json: {\n      period: {\n        start_date: catalog.start_date,\n        end_date: catalog.end_date,\n      },\n      connector_group_count: catalog.connector_group_count,\n      connector_count: catalog.connector_count,\n      invoice_count: 0,\n      invoices_with_amount: 0,\n      grand_total_charged: 0,\n      amount_fields_seen: [],\n      connectors: (catalog.catalog || []).map((c) =\u003e ({\n        ...c,\n        invoice_count: 0,\n        total_charged: 0,\n        invoices: [],\n      })),\n      note: \u0027No invoices found in this date range.\u0027,\n    },\n  }];\n}\n\nconst byId = new Map();\nfor (const c of catalog.catalog || []) {\n  byId.set(String(c.connector_id), {\n    ...c,\n    invoice_count: 0,\n    total_charged: 0,\n    invoices: [],\n  });\n}\n\nconst amountFields = new Set();\nlet invoicesWithAmount = 0;\nlet grandTotal = 0;\n\nfor (const row of rows) {\n  const key = String(row.connector_id);\n  if (!byId.has(key)) {\n    byId.set(key, {\n      connector_id: row.connector_id,\n      username: row.username,\n      carrier: row.carrier,\n      carrier_display_name: row.carrier_display_name || row.carrier,\n      connector_group_id: row.connector_group_id,\n      connector_group_name: row.connector_group_name || \u0027\u0027,\n      invoice_count: 0,\n      total_charged: 0,\n      invoices: [],\n    });\n  }\n  const bucket = byId.get(key);\n  const amount = typeof row.charged_amount === \u0027number\u0027 ? row.charged_amount : null;\n  if (amount !== null) {\n    bucket.total_charged += amount;\n    grandTotal += amount;\n    invoicesWithAmount += 1;\n    if (row.amount_field_used) amountFields.add(row.amount_field_used);\n  }\n  bucket.invoice_count += 1;\n  bucket.invoices.push({\n    invoice_number: row.invoice_number,\n    invoice_date: row.invoice_date,\n    file_format: row.file_format,\n    charged_amount: amount,\n    amount_field_used: row.amount_field_used,\n    download_ok: row.download_ok,\n  });\n}\n\nconst connectors = [...byId.values()].sort((a, b) =\u003e b.total_charged - a.total_charged);\n\nreturn [{\n  json: {\n    period: {\n      start_date: catalog.start_date,\n      end_date: catalog.end_date,\n    },\n    connector_group_count: catalog.connector_group_count,\n    connector_count: catalog.connector_count,\n    invoice_count: rows.length,\n    invoices_with_amount: invoicesWithAmount,\n    grand_total_charged: Number(grandTotal.toFixed(2)),\n    amount_fields_seen: [...amountFields],\n    connectors,\n    note: invoicesWithAmount === 0\n      ? \u0027Invoices were found, but no charge field matched. Open one downloaded invoice JSON and set amount_field in Prepare Last 7 Days to the exact field name.\u0027\n      : undefined,\n  },\n}];"
       }
     }
   ],
   "connections": {
-    "When clicking ‘Test workflow’": {
-      "main": [[{ "node": "Prepare Last 7 Days", "type": "main", "index": 0 }]]
+    "When clicking â€˜Test workflowâ€™": {
+      "main": [
+        [
+          {
+            "node": "Prepare Last 7 Days",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Prepare Last 7 Days": {
-      "main": [[{ "node": "Get Profile", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Get Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Profile": {
-      "main": [[{ "node": "Get Connector Groups", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Get Connector Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Connector Groups": {
-      "main": [[{ "node": "Get Connectors", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Get Connectors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Connectors": {
-      "main": [[{ "node": "Build Catalog", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Build Catalog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Build Catalog": {
-      "main": [[{ "node": "Search Invoices (Last 7 Days)", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Search Invoices (Last 7 Days)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Search Invoices (Last 7 Days)": {
-      "main": [[{ "node": "Expand Invoices", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Expand Invoices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Expand Invoices": {
-      "main": [[{ "node": "Has Signed URL?", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Has Signed URL?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Has Signed URL?": {
       "main": [
-        [{ "node": "Download Invoice JSON", "type": "main", "index": 0 }],
-        [{ "node": "No Downloadable File", "type": "main", "index": 0 }]
+        [
+          {
+            "node": "Download Invoice JSON",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Downloadable File",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     },
     "Download Invoice JSON": {
-      "main": [[{ "node": "Extract Charge Amount", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Extract Charge Amount",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Extract Charge Amount": {
-      "main": [[{ "node": "Summarize Per Connector", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Summarize Per Connector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "No Downloadable File": {
-      "main": [[{ "node": "Summarize Per Connector", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Summarize Per Connector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   }
 }

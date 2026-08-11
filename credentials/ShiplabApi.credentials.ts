@@ -53,7 +53,8 @@ export class ShiplabApi implements ICredentialType {
 
 	test: ICredentialTestRequest = {
 		request: {
-			baseURL: '={{$credentials.baseUrl}}',
+			baseURL:
+				'={{ $credentials.baseUrl.endsWith("/") ? $credentials.baseUrl.slice(0, -1) : $credentials.baseUrl }}',
 			url: '/profile',
 			method: 'GET',
 		},
