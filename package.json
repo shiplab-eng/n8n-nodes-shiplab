@@ -45,11 +45,7 @@
 			"dist/credentials/ShiplabApi.credentials.js"
 		],
 		"nodes": [
-			"dist/nodes/ShiplabProfile/ShiplabProfile.node.js",
-			"dist/nodes/ShiplabConnectorGroup/ShiplabConnectorGroup.node.js",
-			"dist/nodes/ShiplabConnector/ShiplabConnector.node.js",
-			"dist/nodes/ShiplabCarrier/ShiplabCarrier.node.js",
-			"dist/nodes/ShiplabInvoice/ShiplabInvoice.node.js"
+			"dist/nodes/Shiplab/Shiplab.node.js"
 		]
 	},
 	"devDependencies": {

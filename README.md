@@ -42,15 +42,15 @@ Create a **Shiplab API** credential in n8n before using any node.
 
 ## Nodes
 
-Each Shiplab resource is its own node (no overlapping fields across entities):
+Search for **Shiplab** (or aliases like ship, post, postal) in the node picker. One **Shiplab** node covers every resource; pick a resource then an operation (same pattern as MongoDB / GitHub):
 
-| Node | Operations | Description |
-|------|------------|-------------|
-| **Shiplab Profile** | Get, Update | Read or update the authenticated customer profile / billing fields. |
-| **Shiplab Connector Group** | Get Many, Get, Create, Update, Delete | Manage connector groups (companies). |
-| **Shiplab Connector** | Get Many, Get, Create, Update, Delete | Manage carrier connectors under a group. |
-| **Shiplab Carrier** | Get Connection Config | List carriers and the connection fields each one requires. |
-| **Shiplab Invoice** | Search, Get Customer Invoices | Find invoices by date range (optional group/connector filters). |
+| Resource | Operations | Description |
+|----------|------------|-------------|
+| **Profile** | Get, Update | Read or update the authenticated customer profile / billing fields. |
+| **Connector Group** | Get Many, Get, Create, Update, Delete | Manage connector groups (companies). |
+| **Connector** | Get Many, Get, Create, Update, Delete | Manage carrier connectors under a group. |
+| **Carrier** | Get Connection Config | List carriers and the connection fields each one requires. |
+| **Invoice** | Search, Get Customer Invoices | Find invoices by date range (optional group/connector filters). |
 
 ### Connector create / update
 
@@ -58,7 +58,7 @@ On **Create**, choosing a carrier loads required connection fields from `GET /ca
 
 ### Invoice search
 
-- Filter by **Connector Group ID** or **Connector ID** from the other Shiplab nodes.
+- Filter by **Connector Group ID** or **Connector ID**.
 - **Search** returns up to 1,000 invoices plus a next-page token — pass that token into the next request to continue.
 - **Get Customer Invoices** returns every match without pagination.
 
@@ -66,8 +66,8 @@ On **Create**, choosing a carrier loads required connection fields from `GET /ca
 
 **Goal:** for last month, how many invoices did each connector group have?
 
-1. Add **Shiplab Connector Group → Get Many**.
-2. Add **Shiplab Invoice → Get Customer Invoices**.
+1. Add **Shiplab → Connector Group → Get Many**.
+2. Add **Shiplab → Invoice → Get Customer Invoices**.
    - Set **Start Date** / **End Date** (e.g. first and last day of last month).
    - Under **Filters**, set **Connector Group ID** to the ID from the previous node (`{{ $json.id }}` or equivalent).
 3. Run once per group (or loop over groups) and count the returned invoices.

@@ -1,8 +1,20 @@
 {
-	"node": "n8n-nodes-shiplab.shiplabConnectorGroup",
+	"node": "n8n-nodes-shiplab.shiplab",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": ["Finance & Accounting", "Sales"],
+	"alias": [
+		"ship",
+		"shipping",
+		"post",
+		"postal",
+		"postage",
+		"carrier",
+		"invoice",
+		"freight",
+		"parcel",
+		"shiplab"
+	],
 	"resources": {
 		"credentialDocumentation": [{ "url": "https://api.shiplab.com/llms.txt" }],
 		"primaryDocumentation": [{ "url": "https://api.shiplab.com/llms.txt" }]

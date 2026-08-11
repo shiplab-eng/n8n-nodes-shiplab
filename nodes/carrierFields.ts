@@ -27,7 +27,7 @@ export async function fetchCarrierConfigs(
 	this: ILoadOptionsFunctions,
 ): Promise<CarrierConfigRow[]> {
 	const credentials = await this.getCredentials('shiplabApi');
-	const baseUrl = String(credentials.baseUrl ?? '').replace(/\/$/, '');
+	const baseUrl = String(credentials.baseUrl ?? '').replace(/\/+$/, '');
 	const rows = await this.helpers.httpRequestWithAuthentication.call(this, 'shiplabApi', {
 		method: 'GET',
 		url: `${baseUrl}/carrier_connection_config`,

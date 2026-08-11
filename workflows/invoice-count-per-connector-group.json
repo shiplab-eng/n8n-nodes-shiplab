@@ -1,5 +1,5 @@
-{
-  "name": "Shiplab — Invoice Count Per Connector Group",
+﻿{
+  "name": "Shiplab â€” Invoice Count Per Connector Group",
   "meta": {
     "templateCredsSetupCompleted": false,
     "description": "Lists connector groups, fetches last-month invoices for each group, and returns invoice counts per group."
@@ -10,7 +10,7 @@
   "nodes": [
     {
       "id": "b1000000-0000-4000-8000-000000000001",
-      "name": "When clicking ‘Test workflow’",
+      "name": "When clicking â€˜Test workflowâ€™",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [0, 300],
@@ -23,16 +23,17 @@
       "typeVersion": 2,
       "position": [220, 300],
       "parameters": {
-        "jsCode": "const now = new Date();\nconst start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));\nconst end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0));\nconst ymd = (d) => d.toISOString().slice(0, 10);\n\nreturn [{\n  json: {\n    start_date: ymd(start),\n    end_date: ymd(end),\n  },\n}];"
+        "jsCode": "const now = new Date();\nconst start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));\nconst end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0));\nconst ymd = (d) =\u003e d.toISOString().slice(0, 10);\n\nreturn [{\n  json: {\n    start_date: ymd(start),\n    end_date: ymd(end),\n  },\n}];"
       }
     },
     {
       "id": "b1000000-0000-4000-8000-000000000003",
       "name": "Get Connector Groups",
-      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplabConnectorGroup",
-      "typeVersion": 3,
+      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplab",
+      "typeVersion": 1,
       "position": [440, 300],
       "parameters": {
+        "resource": "connectorGroup",
         "operation": "getAll"
       },
       "credentials": {
@@ -49,22 +50,23 @@
       "typeVersion": 2,
       "position": [660, 300],
       "parameters": {
-        "jsCode": "function collect(nodeName) {\n  const items = $(nodeName).all().map((i) => i.json);\n  if (items.length === 1 && Array.isArray(items[0])) return items[0];\n  return items.filter((x) => x && typeof x === 'object' && !Array.isArray(x));\n}\n\nconst period = $('Prepare Last Month').first().json;\nconst groups = collect('Get Connector Groups');\n\nif (!groups.length) {\n  return [{\n    json: {\n      _empty: true,\n      start_date: period.start_date,\n      end_date: period.end_date,\n      message: 'No connector groups found.',\n    },\n  }];\n}\n\nreturn groups.map((g) => ({\n  json: {\n    start_date: period.start_date,\n    end_date: period.end_date,\n    connector_group_id: g.id,\n    connector_group_name: g.display_name || g.name || '',\n  },\n}));"
+        "jsCode": "function collect(nodeName) {\n  const items = $(nodeName).all().map((i) =\u003e i.json);\n  if (items.length === 1 \u0026\u0026 Array.isArray(items[0])) return items[0];\n  return items.filter((x) =\u003e x \u0026\u0026 typeof x === \u0027object\u0027 \u0026\u0026 !Array.isArray(x));\n}\n\nconst period = $(\u0027Prepare Last Month\u0027).first().json;\nconst groups = collect(\u0027Get Connector Groups\u0027);\n\nif (!groups.length) {\n  return [{\n    json: {\n      _empty: true,\n      start_date: period.start_date,\n      end_date: period.end_date,\n      message: \u0027No connector groups found.\u0027,\n    },\n  }];\n}\n\nreturn groups.map((g) =\u003e ({\n  json: {\n    start_date: period.start_date,\n    end_date: period.end_date,\n    connector_group_id: g.id,\n    connector_group_name: g.display_name || g.name || \u0027\u0027,\n  },\n}));"
       }
     },
     {
       "id": "b1000000-0000-4000-8000-000000000005",
       "name": "Get Invoices For Group",
-      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplabInvoice",
+      "type": "@shiplab-eng/n8n-nodes-shiplab.shiplab",
       "typeVersion": 1,
       "position": [880, 300],
       "parameters": {
+        "resource": "invoice",
         "operation": "searchAll",
         "startDate": "={{ $json.start_date }}",
         "endDate": "={{ $json.end_date }}",
         "outputFormat": "json",
         "filters": {
-          "companyId": "={{ $json.connector_group_id }}"
+          "connectorGroupId": "={{ $json.connector_group_id }}"
         }
       },
       "credentials": {
@@ -81,7 +83,7 @@
       "typeVersion": 2,
       "position": [1100, 300],
       "parameters": {
-        "jsCode": "const group = $('Expand Groups').item.json;\n\nif (group._empty) {\n  return [{\n    json: {\n      period: {\n        start_date: group.start_date,\n        end_date: group.end_date,\n      },\n      connector_group_count: 0,\n      invoice_count: 0,\n      groups: [],\n      note: group.message,\n    },\n  }];\n}\n\nconst response = $input.first().json;\nconst invoices = Array.isArray(response.invoices)\n  ? response.invoices\n  : Array.isArray(response)\n    ? response\n    : [];\n\n// Deduplicate when the same invoice appears under multiple file formats.\nconst seen = new Set();\nlet invoiceCount = 0;\nfor (const inv of invoices) {\n  const key = [inv.credential_id, inv.invoice_number, inv.invoice_date].join('|');\n  if (seen.has(key)) continue;\n  seen.add(key);\n  invoiceCount += 1;\n}\n\nreturn [{\n  json: {\n    start_date: group.start_date,\n    end_date: group.end_date,\n    connector_group_id: group.connector_group_id,\n    connector_group_name: group.connector_group_name,\n    invoice_count: invoiceCount,\n  },\n}];"
+        "jsCode": "const group = $(\u0027Expand Groups\u0027).item.json;\n\nif (group._empty) {\n  return [{\n    json: {\n      period: {\n        start_date: group.start_date,\n        end_date: group.end_date,\n      },\n      connector_group_count: 0,\n      invoice_count: 0,\n      groups: [],\n      note: group.message,\n    },\n  }];\n}\n\nconst response = $input.first().json;\nconst invoices = Array.isArray(response.invoices)\n  ? response.invoices\n  : Array.isArray(response)\n    ? response\n    : [];\n\n// Deduplicate when the same invoice appears under multiple file formats.\nconst seen = new Set();\nlet invoiceCount = 0;\nfor (const inv of invoices) {\n  const key = [inv.credential_id, inv.invoice_number, inv.invoice_date].join(\u0027|\u0027);\n  if (seen.has(key)) continue;\n  seen.add(key);\n  invoiceCount += 1;\n}\n\nreturn [{\n  json: {\n    start_date: group.start_date,\n    end_date: group.end_date,\n    connector_group_id: group.connector_group_id,\n    connector_group_name: group.connector_group_name,\n    invoice_count: invoiceCount,\n  },\n}];"
       }
     },
     {
@@ -91,28 +93,76 @@
       "typeVersion": 2,
       "position": [1320, 300],
       "parameters": {
-        "jsCode": "const rows = $input.all().map((i) => i.json);\n\nif (rows.length === 1 && rows[0].groups) {\n  return [{ json: rows[0] }];\n}\n\nconst period = rows[0] || {};\nconst groups = rows\n  .map((r) => ({\n    connector_group_id: r.connector_group_id,\n    connector_group_name: r.connector_group_name,\n    invoice_count: r.invoice_count || 0,\n  }))\n  .sort((a, b) => b.invoice_count - a.invoice_count);\n\nconst invoiceCount = groups.reduce((sum, g) => sum + g.invoice_count, 0);\n\nreturn [{\n  json: {\n    period: {\n      start_date: period.start_date,\n      end_date: period.end_date,\n    },\n    connector_group_count: groups.length,\n    invoice_count: invoiceCount,\n    groups,\n  },\n}];"
+        "jsCode": "const rows = $input.all().map((i) =\u003e i.json);\n\nif (rows.length === 1 \u0026\u0026 rows[0].groups) {\n  return [{ json: rows[0] }];\n}\n\nconst period = rows[0] || {};\nconst groups = rows\n  .map((r) =\u003e ({\n    connector_group_id: r.connector_group_id,\n    connector_group_name: r.connector_group_name,\n    invoice_count: r.invoice_count || 0,\n  }))\n  .sort((a, b) =\u003e b.invoice_count - a.invoice_count);\n\nconst invoiceCount = groups.reduce((sum, g) =\u003e sum + g.invoice_count, 0);\n\nreturn [{\n  json: {\n    period: {\n      start_date: period.start_date,\n      end_date: period.end_date,\n    },\n    connector_group_count: groups.length,\n    invoice_count: invoiceCount,\n    groups,\n  },\n}];"
       }
     }
   ],
   "connections": {
-    "When clicking ‘Test workflow’": {
-      "main": [[{ "node": "Prepare Last Month", "type": "main", "index": 0 }]]
+    "When clicking â€˜Test workflowâ€™": {
+      "main": [
+        [
+          {
+            "node": "Prepare Last Month",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Prepare Last Month": {
-      "main": [[{ "node": "Get Connector Groups", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Get Connector Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Connector Groups": {
-      "main": [[{ "node": "Expand Groups", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Expand Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Expand Groups": {
-      "main": [[{ "node": "Get Invoices For Group", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Get Invoices For Group",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Get Invoices For Group": {
-      "main": [[{ "node": "Count Per Group", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Count Per Group",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     },
     "Count Per Group": {
-      "main": [[{ "node": "Summarize Groups", "type": "main", "index": 0 }]]
+      "main": [
+        [
+          {
+            "node": "Summarize Groups",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   }
 }
