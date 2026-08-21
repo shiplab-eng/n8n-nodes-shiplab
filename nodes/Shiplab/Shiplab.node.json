@@ -1,5 +1,5 @@
 {
-	"node": "n8n-nodes-shiplab.shiplab",
+	"node": "@shiplab-eng/n8n-nodes-shiplab.shiplab",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": ["Finance & Accounting", "Sales"],
